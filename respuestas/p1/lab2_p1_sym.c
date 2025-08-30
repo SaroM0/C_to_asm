@@ -28,28 +28,25 @@ int main() {
     return 0;
 }
 
-// MOdificado por: Santiago Rodríguez Mora - 202110332
+// función modificada por: Santiago Rodríguez Mora - 202110332
 int esDigito (char num) {
     int rta;
-    __asm {
-        ; Load num into AL (byte) and check '0'..'9'
-        mov     al, num
-        cmp     al, '0'
-        jl      not_digit
-        cmp     al, '9'
-        jg      not_digit
-
-        ; rta = 1
-        mov     eax, 1
-        mov     rta, eax
-        jmp     done
-
-    not_digit:
-        ; rta = 0
-        xor     eax, eax
-        mov     rta, eax
-
-    done:
-    }
+    __asm__ __volatile__ (
+        "movb %1, %%al\n\t"
+        "cmpb $'0', %%al\n\t"
+        "jl 1f\n\t"
+        "cmpb $'9', %%al\n\t"
+        "jg 1f\n\t"
+        "movl $1, %%eax\n\t"
+        "movl %%eax, %0\n\t"
+        "jmp 2f\n"
+        "1:\n\t"
+        "xorl %%eax, %%eax\n\t"
+        "movl %%eax, %0\n"
+        "2:\n\t"
+        : "=m" (rta)
+        : "m" (num)
+        : "eax", "cc"
+    );
     return rta;
 }

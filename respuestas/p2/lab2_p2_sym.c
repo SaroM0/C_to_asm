@@ -43,39 +43,26 @@ int main() {
     return 0;
 }
 
-// Modificado por: Santiago Rodríguez Mora
+// función modificada por: Santiago Rodríguez Mora
 int esta (int * v, int num, int n) {
     int centinela = 0;
     int i;
 
-    __asm {
-        ; centinela = 0; i = 0;
-        mov     dword ptr [centinela], 0
-        mov     dword ptr [i], 0
-
-    for_loop:
-        ; if (i >= n) break;
-        mov     eax, [i]
-        cmp     eax, [n]
-        jge     end_for
-
-        ; if (centinela != 0) break;
-        cmp     dword ptr [centinela], 0
-        jne     end_for
-
-        ; if (v[i] == num) centinela = 1;
-        mov     edx, [v]              ; base address
-        mov     ecx, [i]              ; index
-        mov     eax, [edx + ecx*4]    ; load v[i]
-        cmp     eax, [num]
-        jne     no_match
-        mov     dword ptr [centinela], 1
-    no_match:
-        ; i++
-        inc     dword ptr [i]
-        jmp     for_loop
-
-    end_for:
+    for (i=0; i<n && !centinela; i++) {
+        int current_value = v[i];
+        int result;
+        __asm__ __volatile__ (
+            "cmpl %2, %1\n\t"
+            "sete %%al\n\t"
+            "movzbl %%al, %0\n\t"
+            : "=r" (result)
+            : "r" (current_value), "r" (num)
+            : "eax", "cc"
+        );
+        
+        if (result) {
+            centinela = 1;
+        }
     }
 
     return centinela;

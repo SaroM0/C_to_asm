@@ -43,47 +43,35 @@ int main() {
     return 0;
 }
 
-// Modificado por: Santiago Rodríguez Mora
+// función modificada por: Santiago Rodríguez Mora
 int esta (int * v, int num, int n) {
     int centinela = 0;
-    int i;
+    int i = 0;
 
-    __asm {
-        ; Stack assumptions:
-        ;   [ebp+8]  = v (int*)
-        ;   [ebp+12] = num (int)
-        ;   [ebp+16] = n (int)
-        ;   [ebp-4]  = centinela (int)
-        ;   [ebp-8]  = i (int)
+    __asm__ __volatile__ (
 
-        ; centinela = 0; i = 0;
-        mov     dword ptr [ebp-4], 0
-        mov     dword ptr [ebp-8], 0
-
-    for_loop:
-        ; if (i >= n) break;
-        mov     eax, [ebp-8]
-        cmp     eax, [ebp+16]
-        jge     end_for
-
-        ; if (centinela != 0) break;
-        cmp     dword ptr [ebp-4], 0
-        jne     end_for
-
-        ; if (v[i] == num) centinela = 1;
-        mov     edx, [ebp+8]          ; v base
-        mov     ecx, [ebp-8]          ; i
-        mov     eax, [edx + ecx*4]    ; v[i]
-        cmp     eax, [ebp+12]         ; compare with num
-        jne     no_match
-        mov     dword ptr [ebp-4], 1
-    no_match:
-        ; i++
-        inc     dword ptr [ebp-8]
-        jmp     for_loop
-
-    end_for:
-    }
+        "movl $0, -4(%%ebp)\n\t"
+        "movl $0, -8(%%ebp)\n\t"
+        "0:\n\t"
+        "movl -8(%%ebp), %%eax\n\t"
+        "cmpl 16(%%ebp), %%eax\n\t"
+        "jge 3f\n\t"
+        "cmpl $0, -4(%%ebp)\n\t"
+        "jne 3f\n\t"
+        "movl 8(%%ebp), %%edx\n\t"
+        "movl -8(%%ebp), %%ecx\n\t"
+        "movl (%%edx,%%ecx,4), %%eax\n\t"
+        "cmpl 12(%%ebp), %%eax\n\t"
+        "jne 1f\n\t"
+        "movl $1, -4(%%ebp)\n\t"
+        "1:\n\t"
+        "incl -8(%%ebp)\n\t"
+        "jmp 0b\n\t"
+        "3:\n\t"
+        :
+        :
+        : "eax", "ecx", "edx", "cc", "memory"
+    );
 
     return centinela;
 }

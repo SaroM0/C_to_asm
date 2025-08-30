@@ -28,29 +28,23 @@ int main() {
     return 0;
 }
 
-// Modificado por: Santiago Rodríguez Mora - 202110332
+// función modificada por: Santiago Rodríguez Mora - 202110332
 int esDigito (char num) {
     int rta;
-    __asm {
-        ; Stack assumptions:
-        ;   [ebp+8]  = num (char)
-        ;   [ebp-4]  = rta (int)
-
-        mov     al, byte ptr [ebp+8]
-        cmp     al, '0'
-        jl      not_digit
-        cmp     al, '9'
-        jg      not_digit
-
-        ; rta = 1
-        mov     dword ptr [ebp-4], 1
-        jmp     done
-
-    not_digit:
-        ; rta = 0
-        mov     dword ptr [ebp-4], 0
-
-    done:
-    }
+    __asm__ __volatile__ (
+        "movb 8(%%ebp), %%al\n\t"
+        "cmpb $'0', %%al\n\t"
+        "jl 1f\n\t"
+        "cmpb $'9', %%al\n\t"
+        "jg 1f\n\t"
+        "movl $1, -4(%%ebp)\n\t"
+        "jmp 2f\n"
+        "1:\n\t"
+        "movl $0, -4(%%ebp)\n"
+        "2:\n\t"
+        :
+        :
+        : "eax", "cc", "memory"
+    );
     return rta;
 }
